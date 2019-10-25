@@ -16,21 +16,14 @@ RUN wget --no-verbose https://download3.rstudio.org/centos6.3/x86_64/VERSION -O 
     rm -f version.txt ss-latest.deb && \
     . /etc/environment
 
-# Set git user
-# RUN 
-
-# Init directory for git code
-#RUN mkdir -p /web && cd /web
-# RUN git clone ${RSHINY_REPO_URL} && cd $(ls .)
-
 # Protect server installation
 
 # Exclude action outside web directory
 
-VOLUME /srv/shiny-server/
+#VOLUME /srv/shiny-server/
 
 EXPOSE 3838
 
-COPY shiny-server.sh /usr/bin/shiny-server.sh
+#COPY shiny-server.sh /usr/bin/shiny-server.sh
 
-CMD ["/usr/bin/shiny-server.sh"]
+#CMD ["/usr/bin/shiny-server.sh"]
