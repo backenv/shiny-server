@@ -13,7 +13,7 @@ RUN wget --no-verbose https://download3.rstudio.org/centos6.3/x86_64/VERSION -O 
     VERSION=$(cat version.txt)  && \
     wget --no-verbose "https://download3.rstudio.org/centos6.3/x86_64/shiny-server-$VERSION-x86_64.rpm" -O ss-latest.rpm && \
     yum -y install --nogpgcheck ss-latest.rpm && \
-    rm -f version.txt ss-latest.deb && \
+    rm -f version.txt ss-latest.rpm && \
     . /etc/environment
 
 # Protect server installation
