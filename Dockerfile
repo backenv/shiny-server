@@ -1,36 +1,48 @@
-FROM centos/systemd
+FROM ubuntu:bionic
 
-# Add shiny server
-RUN yum -y install epel-release && \
-  yum -y update && \
-  yum-complete-transaction
+ENV TZ Europe/Paris
+ENV SRC_SHINY_OS_v ubuntu-14.04
 
-RUN yum -y install R git wget httpd
+# Set timezone
+RUN echo $TZ > /etc/timezone && \
+	apt update && apt install tzdata && \
+        dpkg-reconfigure -f noninteractive tzdata
 
-RUN R -e "install.packages('shiny', repos='https://cran.rstudio.com/')"
+# Add OS libraries
+RUN apt install -y --no-install-recommends r-base \
+	git wget apache2 \
+	make gcc g++
 
-RUN wget --no-verbose https://download3.rstudio.org/centos6.3/x86_64/VERSION -O "version.txt" && \
-    VERSION=$(cat version.txt)  && \
-    wget --no-verbose "https://download3.rstudio.org/centos6.3/x86_64/shiny-server-$VERSION-x86_64.rpm" -O ss-latest.rpm && \
-    yum -y install --nogpgcheck ss-latest.rpm && \
-    rm -f version.txt ss-latest.rpm && \
-    . /etc/environment
+# Add R packages
+RUN R -e "install.packages(c('shiny', 'rmarkdown', 'ggplot2'), repos='https://cran.rstudio.com/')"
 
-# Protect server installation
-RUN addgroup --gid 1003 ushiny && \
-    adduser --uid 1003 --gid 1003 --no-create-home ushiny
+# Add Shiny Server CE
+# Uses last x.x.x.x-version
+VOLUME /srv/shiny-server/
 
-RUN mkdir -p /srv/ushiny && chown -r ushiny:ushiny /srv/ushiny
-# Exclude action outside web directory
+RUN wget --no-verbose https://download3.rstudio.org -O "version.txt" && \
+    VERSION=$(cat version.txt | \
+                sed -z 's/<Key>/\n/g' | \
+                sed 's/deb.*$/deb/g' | \
+                grep $SRC_SHINY_OS_v | \
+                grep '[0-9]\.[0-9]\.[0-9]\.[0-9]-' | \
+                tail -1) && \
+    wget --no-verbose "https://download3.rstudio.org/$VERSION" -O ss-latest.deb && \
+    dpkg -i ss-latest.deb && \
+    rm -f version.txt ss-latest.deb && \
+    apt autoremove
 
+# RUN . /etc/environment
 
-#VOLUME /srv/shiny-server/
+# Exclude non-root action outside web directory
+# RUN chown -R shiny:shiny /var/lib/shiny-server && \
+#    chmod 644 /etc/shiny-server && chmod o-w /opt/shiny-server
+
 
 EXPOSE 3838
 
-USER ushiny
+USER shiny
 
-WORKDIR /srv/ushiny
-#COPY shiny-server.sh /usr/bin/shiny-server.sh
+WORKDIR /srv/shiny-server
 
-#CMD ["/usr/bin/shiny-server.sh"]
+CMD ["shiny-server"]
