@@ -1,3 +1,3 @@
 # shiny-server
 
-R Shiny server
+R Shiny server as docker container
